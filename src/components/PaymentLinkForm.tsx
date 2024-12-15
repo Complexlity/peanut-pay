@@ -123,7 +123,7 @@ const PaymentLinkForm: React.FC = () => {
   // const chainId = '10';  // Optimism
   // const tokenAmount = '10';
   // const tokenDecimals = '6';
-    // const APIKey = 'UtyraajNKZqCelV3k2U0Y1xW7l3WwWpI';
+    // const APIKey = process.env.PEANUT_API_KEY;
     
     // const link = await createRequestLink({
     //   recepientAddress: resolvedAddress || formData.recipient,
