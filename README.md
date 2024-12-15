@@ -50,6 +50,7 @@ Viem
 5. The current generated link takes a users to the pay route where they see a pay button and the other fields get prefilled from the url
 6. The payment button is intended to use viem to get the default provider and use peanut to fullfill the payment using the `fulfillRequestLink`
 7. The `/pay` route validates the url and gets the required values, if the recepient is invalid, it disables the button and gives the user the options to enter a valid address or ENS in the input
+8. The Navbar use window.ethereum to get the user. This is done due to time constraint and with the newer RPC methods to announceProvider, there will no friction in a situation where there's multiple wallets installed or using a library like [Rainbow](https://www.rainbowkit.com/docs/connect-button) 
 
 ## Considerations
 - The initial design was to make the link creation static i.e the user does not need to click any buttons to generate the links. I personally find this experience easier to use and the user can learn how the create link works. This will help them create on their own

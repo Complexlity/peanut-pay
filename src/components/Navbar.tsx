@@ -11,8 +11,9 @@ const Navbar: React.FC = () => {
     useEffect(() => {
         handleConnect();
     }, []);
-    
+
     const handleConnect = async () => {
+        //@ts-expect-error
         const [address] = await window.ethereum.request({ 
             method: 'eth_requestAccounts' 
         })
