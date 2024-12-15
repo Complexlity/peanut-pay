@@ -1,7 +1,15 @@
 'use client'
-import  { useState } from 'react';
-import { Loader2, Link as LinkIcon } from 'lucide-react';
+
+import { useState } from 'react';
+import { Loader2 } from 'lucide-react';
 import TokenSelect from './TokenSelect';
+import GeneratedLink from './GeneratedLink';
+import { getAddressForEns } from '@/lib/utils';
+import { BASE_URL } from '@/lib/constants';
+import ChainSelect from './ChainSelect';
+import peanut from '@squirrel-labs/peanut-sdk';
+import { Address } from 'viem';
+import { create } from 'domain';
 
 interface FormData {
   recipient: string;
@@ -10,6 +18,7 @@ interface FormData {
   token?: string;
 }
 
+
 const PaymentLinkForm: React.FC = () => {
   const [formData, setFormData] = useState<FormData>({
     recipient: '',
@@ -17,6 +26,44 @@ const PaymentLinkForm: React.FC = () => {
     amount: '',
     token: '',
   });
+
+
+  
+
+  async function createRequestLink({
+    chainId,
+    tokenAddress,
+    tokenAmount,
+    tokenDecimals,
+    recipientAddress,
+    apiKey,
+  }: {
+      chainId: string,
+      tokenAddress: Address,
+      tokenAmount: string,
+      tokenDecimals: string,
+      recipientAddress: Address,
+      apiKey: string
+  }): Promise<string | undefined> {
+    try {
+      const { link } = await peanut.createRequestLink({
+        chainId,
+        tokenAddress,
+        tokenAmount,
+        tokenType: peanut.interfaces.EPeanutLinkType.erc20, // or EPeanutLinkType.native
+        tokenDecimals,
+        recipientAddress,
+        APIKey: apiKey,
+      });
+      return link;
+    } catch (error) {
+      console.error('Error creating request link:', error);
+      return undefined
+    }
+  }
+  
+
+
   const [resolvedAddress, setResolvedAddress] = useState<string | null>(null);
   const [isResolving, setIsResolving] = useState(false);
 
@@ -25,10 +72,15 @@ const PaymentLinkForm: React.FC = () => {
     
     setIsResolving(true);
     // Simulate ENS resolution
-    setTimeout(() => {
-      setResolvedAddress('0x9647BB6a598c2675310c512e0566B60a5aEE6261');
-      setIsResolving(false);
-    }, 1000);
+    let address = null;
+    try {
+      address = await getAddressForEns(ensName);
+    } catch (error) {
+      console.error('Failed to resolve ENS:', error);
+      
+    }
+    setResolvedAddress(address);
+    setIsResolving(false);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -42,23 +94,51 @@ const PaymentLinkForm: React.FC = () => {
     }
   };
 
+
+
   const handleTokenChange = (value: string) => {
     setFormData(prev => ({ ...prev, token: value }));
   };
 
-  const generateLink = () => {
-    const address = resolvedAddress || formData.recipient;
-    const parts = [address];
+  const handleChainChange = (value: string) => {
+    setFormData(prev => ({ ...prev, chain: value }));
+  };
+
+  const tempGenerateLink = () => {
+    const recepient = formData.recipient;
+    const parts = [recepient];
 
     if (formData.chain) parts.push(formData.chain);
     if (formData.amount) parts.push(formData.amount);
     if (formData.token) parts.push(formData.token);
 
-    return `pay.to/${parts.join('/')}`;
+    // await
+    return `${BASE_URL}/pay/${parts.join('/')}`;
   };
 
+  const handleGenerateLink = async () => {
+
+    // const recipientAddress = '0x42A5DC31169Da17639468e7Ffa271e90Fdb5e85A';
+  // const tokenAddress = '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85'; // USDC on Optimism
+  // const chainId = '10';  // Optimism
+  // const tokenAmount = '10';
+  // const tokenDecimals = '6';
+    // const APIKey = 'UtyraajNKZqCelV3k2U0Y1xW7l3WwWpI';
+    
+    // const link = await createRequestLink({
+    //   recepientAddress: resolvedAddress || formData.recipient,
+    //   chainId:
+    // });
+    //
+    //Use peanut sdk to generate the payment link for the user to copy
+    
+  };
+
+  const hasOtherValues = (!!formData.chain || !!formData.amount || !!formData.token);
+  
+
   return (
-    <div className="w-full max-w-md mx-auto p-6 space-y-6">
+    <div className="w-full max-w-lg mx-auto p-6 space-y-6">
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Payment Link Generator</h1>
         <p className="text-gray-600">Create your custom payment link</p>
@@ -87,26 +167,18 @@ const PaymentLinkForm: React.FC = () => {
             )}
           </div>
           {resolvedAddress && (
-            <p className="mt-1 text-sm text-gray-600">
-              Resolved: {resolvedAddress.slice(0, 6)}...{resolvedAddress.slice(-4)}
+            <>
+            <p className="hidden sm:block py-4 text-sm text-gray-600">
+              Address: {resolvedAddress}
             </p>
+            <p className="sm:hidden py-4 text-sm text-gray-600">
+              Address: {resolvedAddress.slice(0, 8)}...{resolvedAddress.slice(-6)}
+            </p>
+            </>
           )}
         </div>
 
-        <div>
-          <label htmlFor="chain" className="block text-sm font-medium text-gray-700 mb-1">
-            Chain (Optional)
-          </label>
-          <input
-            type="text"
-            id="chain"
-            name="chain"
-            value={formData.chain}
-            onChange={handleInputChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            placeholder="e.g., optimism"
-          />
-        </div>
+        <ChainSelect value={formData.chain || ''} onChange={handleChainChange} />
 
         <div>
           <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-1">
@@ -125,17 +197,10 @@ const PaymentLinkForm: React.FC = () => {
 
         <TokenSelect value={formData.token || ''} onChange={handleTokenChange} />
 
-        <div className="pt-4">
-          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-            <div className="flex items-center gap-2 text-gray-700 mb-2">
-              <LinkIcon className="w-4 h-4" />
-              <span className="font-medium">Generated Link:</span>
-            </div>
-            <code className="block w-full p-2 bg-white rounded border border-gray-200 text-sm break-all">
-              {generateLink()}
-            </code>
-          </div>
-        </div>
+        {/* <GeneratedLink link={handleGenerateLink()} address={resolvedAddress || formData.recipient} hasOtherValues={hasOtherValues} /> */}
+        <GeneratedLink link={tempGenerateLink()} address={resolvedAddress || formData.recipient} hasOtherValues={hasOtherValues} />
+
+        {/* <button onClick={handleGenerateLink} className="w-full py-3 px-4 rounded-lg font-medium transition-colors bg-blue-600 text-white hover:bg-blue-700">Generate Link</button> */}
       </div>
     </div>
   );

@@ -10,9 +10,11 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@squirrel-labs/peanut-sdk": "^0.5.13",
+    "next": "14.2.20",
     "react": "^18",
     "react-dom": "^18",
-    "next": "14.2.20"
+    "viem": "^2.21.55"
   },
   "devDependencies": {
     "typescript": "^5",

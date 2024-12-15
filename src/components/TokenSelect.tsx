@@ -15,7 +15,7 @@ const TokenSelect: React.FC<TokenSelectProps> = ({ value, onChange }) => {
   return (
     <div>
       <label htmlFor="token" className="block text-sm font-medium text-gray-700 mb-1">
-        Token (Optional)
+        Token
       </label>
       <select
         id="token"
