@@ -1,12 +1,22 @@
+
 'use client'
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Wallet } from 'lucide-react';
 
 const Navbar: React.FC = () => {
   const [isConnected, setIsConnected] = useState(false);
+    const [userAddress, setUserAddress] = useState<string | null>(null);
 
-  const handleConnect = () => {
+    useEffect(() => {
+        handleConnect();
+    }, []);
+    
+    const handleConnect = async () => {
+        const [address] = await window.ethereum.request({ 
+            method: 'eth_requestAccounts' 
+        })
+        setUserAddress(address);
     setIsConnected(true);
   };
 
@@ -16,7 +26,7 @@ const Navbar: React.FC = () => {
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center gap-2">
             <Wallet className="w-6 h-6 text-blue-600" />
-            <span className="text-xl font-bold text-gray-900">pay.to</span>
+            <span className="text-xl font-bold text-gray-900">peanut pay</span>
           </div>
           
           <button
@@ -24,10 +34,10 @@ const Navbar: React.FC = () => {
             className={`px-4 py-2 rounded-lg font-medium transition-colors ${
               isConnected
                 ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                : 'bg-blue-600 text-white hover:bg-blue-700'
+                : 'bg-blue-600 text-white hover:bg-blue-700' 
             }`}
           >
-            {isConnected ? '0x1234...5678' : 'Connect Wallet'}
+            {isConnected ? userAddress : 'Connect Wallet'}
           </button>
         </div>
       </div>
