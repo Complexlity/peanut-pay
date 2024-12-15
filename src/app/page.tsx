@@ -1,8 +1,9 @@
+import PaymentLinkForm from '@/components/PaymentLinkForm';
 
-export default function Home() {
+export default function Home() { 
   return (
-    <div className="bg-orange-400">
-      Hello world
+      <div className="container mx-auto px-4 py-8">
+        <PaymentLinkForm />
     </div>
   );
 }
